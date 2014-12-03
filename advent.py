@@ -25,9 +25,9 @@ class Window(QtGui.QDialog):
 
         self.systemTrayIcon = QtGui.QSystemTrayIcon(self)
         self.systemTrayIcon.activated.connect(self._showWindow)
-        self.systemTrayIcon.show()
         self.rightClickMenu = QtGui.QMenu()
         self.rightClickMenu.addAction('Quit', self.reject)
+        self._setSysTrayIcon(icon=QtGui.QIcon.fromTheme("edit-delete"))
         self.systemTrayIcon.setContextMenu(self.rightClickMenu)
 
         self.layout = QtGui.QVBoxLayout()
@@ -77,11 +77,13 @@ class Window(QtGui.QDialog):
         self.nam.finished.connect(self._setSysTrayIcon)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
-    def _setSysTrayIcon(self, response):
-        img = QtGui.QImage()
-        img.loadFromData(response.readAll())
-        icon = QtGui.QPixmap.fromImage(img)
+    def _setSysTrayIcon(self, response=None, icon=None):
+        if not icon:
+            img = QtGui.QImage()
+            img.loadFromData(response.readAll())
+            icon = QtGui.QPixmap.fromImage(img)
         self.systemTrayIcon.setIcon(icon)
+        self.systemTrayIcon.show()
 
     def loader(self):
         self.view.load(QtCore.QUrl('https://broadcasthe.net/advent.php?action=claimprize'))
