@@ -80,7 +80,7 @@ class Window(QtGui.QDialog):
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
     def _setSysTrayIcon(self, response):
-        img = qtgui.qimage()
+        img = QtGui.QImage()
         img.loadfromdata(response.readall())
         icon = qtgui.qpixmap.fromimage(img)
         self.systemTrayIcon.setIcon(icon)
