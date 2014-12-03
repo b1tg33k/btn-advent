@@ -26,6 +26,7 @@ class Window(QtGui.QDialog):
         self.systemTrayIcon = QtGui.QSystemTrayIcon(self)
         self.systemTrayIcon.activated.connect(self._showWindow)
         self.rightClickMenu = QtGui.QMenu()
+        self.rightClickMenu.addAction('Show window', self.show)
         self.rightClickMenu.addAction('Quit', self.reject)
         self._setSysTrayIcon(icon=QtGui.QIcon.fromTheme("edit-delete"))
         self.systemTrayIcon.setContextMenu(self.rightClickMenu)
@@ -95,6 +96,12 @@ class Window(QtGui.QDialog):
         self.loadTimer.setInterval(REFRESH_INTERVAL)
         self.loadTimer.start()
 
+    def getStatusString(self):
+        remaining = int(self.loadTimer.remainingTime())
+        hours = remaining / 3600
+        minutes = (remaining - hours * 3600) / 60
+        return 'Reloading in {0}s ({1}h {2}m)'.format(remaining, int(hours), int(minutes))
+
     def updateStatus(self):
         if 'login.php' in str(self.view.url()) and self.loggedIn == True:
             self.systemTrayIcon.showMessage('Action required', 'You need to log-in')
@@ -108,8 +115,9 @@ class Window(QtGui.QDialog):
 
         self.settings.setValue('cookieStore', cookies)
 
-        remaining = int(self.loadTimer.remainingTime())
-        self.statusLabel.setText('Reloading in {0}s'.format(remaining))
+        status = self.getStatusString()
+        self.statusLabel.setText(status)
+        self.systemTrayIcon.setToolTip(status)
 
     def closeEvent(self, event):
         event.ignore()
