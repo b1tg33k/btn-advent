@@ -81,8 +81,8 @@ class Window(QtGui.QDialog):
 
     def _setSysTrayIcon(self, response):
         img = QtGui.QImage()
-        img.loadfromdata(response.readall())
-        icon = qtgui.qpixmap.fromimage(img)
+        img.loadFromData(response.readAll())
+        icon = QtGui.QPixmap.fromImage(img)
         self.systemTrayIcon.setIcon(icon)
         self.systemTrayIcon.show()
 
