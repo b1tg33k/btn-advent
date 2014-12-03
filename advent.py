@@ -28,7 +28,8 @@ class Window(QtGui.QDialog):
         self.rightClickMenu = QtGui.QMenu()
         self.rightClickMenu.addAction('Show window', self.show)
         self.rightClickMenu.addAction('Quit', self.reject)
-        self._setSysTrayIcon(icon=QtGui.QIcon.fromTheme("edit-delete"))
+        self.systemTrayIcon.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
+        self.systemTrayIcon.show()
         self.systemTrayIcon.setContextMenu(self.rightClickMenu)
 
         self.layout = QtGui.QVBoxLayout()
@@ -78,11 +79,10 @@ class Window(QtGui.QDialog):
         self.nam.finished.connect(self._setSysTrayIcon)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
-    def _setSysTrayIcon(self, response=None, icon=None):
-        if not icon:
-            img = QtGui.QImage()
-            img.loadFromData(response.readAll())
-            icon = QtGui.QPixmap.fromImage(img)
+    def _setSysTrayIcon(self, response):
+        img = qtgui.qimage()
+        img.loadfromdata(response.readall())
+        icon = qtgui.qpixmap.fromimage(img)
         self.systemTrayIcon.setIcon(icon)
         self.systemTrayIcon.show()
 
