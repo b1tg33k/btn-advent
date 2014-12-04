@@ -60,8 +60,6 @@ class Window(QtGui.QDialog):
         self.loadTimer.setSingleShot(True)
         self.loadTimer.start(REFRESH_INTERVAL)
 
-        self.showMaximized()
-
         self.loader()
 
     def _loadCookies(self):
