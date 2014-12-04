@@ -73,7 +73,7 @@ class Window(QtGui.QDialog):
             self.cookieJar.setAllCookies(parsedCookies)
 
     def _loadSysTrayIcon(self):
-        url = "https://broadcasthe.net/favicon.ico"
+        url = "https://cdn.broadcasthe.net/common/present.png"
         self.nam = QtNetwork.QNetworkAccessManager()
         self.nam.finished.connect(self._setSysTrayIcon)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
