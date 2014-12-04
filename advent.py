@@ -3,7 +3,7 @@ import sys
 from PySide import QtGui, QtWebKit, QtCore, QtNetwork
 
 DATA_DIR = QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)
-REFRESH_INTERVAL = 1000 * 3600 * 3  # 3 hours
+REFRESH_INTERVAL = 1000 * 3600 # 1 hour
 
 class MyTimer(QtCore.QTimer):
     def start(self, *args, **kwargs):
