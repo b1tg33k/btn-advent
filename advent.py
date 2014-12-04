@@ -25,10 +25,11 @@ class Window(QtGui.QDialog):
 
         self.systemTrayIcon = QtGui.QSystemTrayIcon(self)
         self.systemTrayIcon.activated.connect(self._showWindow)
+        defaultIcon = QtGui.QStyle.SP_ArrowUp
+        self.systemTrayIcon.setIcon(self.style().standardIcon(defaultIcon))
         self.rightClickMenu = QtGui.QMenu()
         self.rightClickMenu.addAction('Show window', self.show)
         self.rightClickMenu.addAction('Quit', self.reject)
-        self.systemTrayIcon.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
         self.systemTrayIcon.show()
         self.systemTrayIcon.setContextMenu(self.rightClickMenu)
 
