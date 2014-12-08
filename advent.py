@@ -1,4 +1,5 @@
 import time
+import re
 import sys
 from PySide import QtGui, QtWebKit, QtCore, QtNetwork
 
@@ -18,7 +19,6 @@ class Window(QtGui.QDialog):
     def __init__(self, parent=None):
         '''A mess'''
         super(Window, self).__init__(parent)
-        self.loggedIn = True
 
         self.settings = QtCore.QSettings('btn-advent', 'a')
         self.setWindowTitle('BTN Advent Calender')
@@ -28,8 +28,8 @@ class Window(QtGui.QDialog):
         defaultIcon = QtGui.QStyle.SP_ArrowUp
         self.systemTrayIcon.setIcon(self.style().standardIcon(defaultIcon))
         self.rightClickMenu = QtGui.QMenu()
-        self.rightClickMenu.addAction('Show window', self.show)
-        self.rightClickMenu.addAction('Quit', self.reject)
+        self.rightClickMenu.addAction('&Show window', self.show)
+        self.rightClickMenu.addAction('&Quit', self.reject)
         self.systemTrayIcon.show()
         self.systemTrayIcon.setContextMenu(self.rightClickMenu)
 
@@ -37,6 +37,7 @@ class Window(QtGui.QDialog):
 
         self.statusLabel = QtGui.QLabel('Hello World!')
         self.view = QtWebKit.QWebView(self)
+        self.view.hide()
         self.cookieJar = QtNetwork.QNetworkCookieJar()
         self.view.page().networkAccessManager().setCookieJar(self.cookieJar)
 
@@ -47,6 +48,7 @@ class Window(QtGui.QDialog):
         self.layout.addWidget(self.view, stretch=95)
 
         self.setLayout(self.layout)
+        self.prizeStatus = ''
         self.view.loadFinished.connect(self.checkPrize)
 
         # This updates the status label
@@ -87,11 +89,27 @@ class Window(QtGui.QDialog):
 
     def loader(self):
         self.view.load(QtCore.QUrl('https://broadcasthe.net/advent.php?action=claimprize'))
-        self.view.show()
 
     def checkPrize(self):
+        # Backup current cookies
+        cookieJar = self.view.page().networkAccessManager().cookieJar().allCookies()
+        cookies = [cookie.toRawForm() for cookie in cookieJar]
+        self.settings.setValue('cookieStore', cookies)
+
+        if 'login.php' in str(self.view.url()):
+            self.view.show()
+            self.adjustSize()
+            self.systemTrayIcon.showMessage('Action required', 'You need to log-in')
+        else:
+            self.view.hide()
+            self.adjustSize()
+
         if 'claimprize' not in str(self.view.url()):
             return
+        prizes = re.search('The prizes you have won so far are: (.*?)<', self.view.page().mainFrame().toHtml())
+        if prizes:
+            prizes = '\n'.join(prizes.group(1).split(','))
+            self.prizeStatus = 'Currently won prizes:\n{0}'.format(prizes)
         self.loadTimer.setInterval(REFRESH_INTERVAL)
         self.loadTimer.start()
 
@@ -99,21 +117,11 @@ class Window(QtGui.QDialog):
         remaining = int(self.loadTimer.remainingTime())
         hours = remaining / 3600
         minutes = (remaining - hours * 3600) / 60
-        return 'Reloading in {0}s ({1}h {2}m)'.format(remaining, int(hours), int(minutes))
+
+        return '''Reloading in {0}s ({1}h {2}m)\n
+{3}'''.format(remaining, int(hours), int(minutes), self.prizeStatus)
 
     def updateStatus(self):
-        if 'login.php' in str(self.view.url()) and self.loggedIn == True:
-            self.systemTrayIcon.showMessage('Action required', 'You need to log-in')
-            self.loggedIn = False
-
-        if 'login.php' not in str(self.view.url()) and self.loggedIn == False:
-            self.loggedIn = True
-
-        cookieJar = self.view.page().networkAccessManager().cookieJar().allCookies()
-        cookies = [cookie.toRawForm() for cookie in cookieJar]
-
-        self.settings.setValue('cookieStore', cookies)
-
         status = self.getStatusString()
         self.statusLabel.setText(status)
         self.systemTrayIcon.setToolTip(status)
@@ -134,7 +142,6 @@ def exec_():
     app = QtGui.QApplication(sys.argv)
     window = Window()
     window.show()
-
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
