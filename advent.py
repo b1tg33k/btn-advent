@@ -1,6 +1,7 @@
 import time
 import re
 import sys
+import random
 from PySide import QtGui, QtWebKit, QtCore, QtNetwork
 
 DATA_DIR = QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)
@@ -106,11 +107,25 @@ class Window(QtGui.QDialog):
 
         if 'claimprize' not in str(self.view.url()):
             return
-        prizes = re.search('The prizes you have won so far are: (.*?)<', self.view.page().mainFrame().toHtml())
+        html = self.view.page().mainFrame().toHtml()
+        prizes = re.search('The prizes you have won so far are: (.*?)<', html)
         if prizes:
-            prizes = '\n'.join(prizes.group(1).split(','))
+            prizes = '\n'.join(prizes.group(1).split(', '))
             self.prizeStatus = 'Currently won prizes:\n{0}'.format(prizes)
-        self.loadTimer.setInterval(REFRESH_INTERVAL)
+
+        nextPrize = re.search('Please try again in.*([0-9]+)d ([0-9]+)h ([0-9]+)m ([0-9]+)s', html)
+        nextReload = REFRESH_INTERVAL
+        if nextPrize:
+            try:
+                days, hours, minutes, seconds = map(int, nextPrize.groups())
+                nextReload = 1000 * (days * 86400 +
+                                     hours * 3600 +
+                                     minutes * 60 +
+                                     seconds +
+                                     random.randint(10, 100))
+            except AttributeError:
+                pass
+        self.loadTimer.setInterval(nextReload)
         self.loadTimer.start()
 
     def getStatusString(self):
